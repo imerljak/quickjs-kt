@@ -127,7 +127,7 @@ private fun handleEvalResult(
 @OptIn(ExperimentalForeignApi::class)
 private fun checkContextException(context: CPointer<JSContext>) {
     JS_GetException(context).use(context) {
-        if (JS_IsNull(this) != 1) {
+        if (JS_IsNull(this)) {
             throw jsErrorToKtError(context, this)
         }
     }

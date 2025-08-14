@@ -19,10 +19,10 @@ private fun promiseRejectionHandler(
     context: CPointer<JSContext>?,
     promise: CValue<JSValue>,
     reason: CValue<JSValue>,
-    isHandled: Int,
+    isHandled: Boolean,
     opaque: COpaquePointer?,
 ) {
-    if (isHandled != 1) {
+    if (isHandled) {
         val quickJs = opaque!!.asStableRef<QuickJs>()
         quickJs.get().setUnhandledPromiseRejection(reason.toKtValue(context!!))
     }

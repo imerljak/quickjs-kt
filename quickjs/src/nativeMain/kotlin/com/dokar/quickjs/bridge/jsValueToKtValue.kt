@@ -81,7 +81,7 @@ internal fun CValue<JSValue>.toKtValue(context: CPointer<JSContext>): Any? {
     if (tag == JS_TAG_NULL || tag == JS_TAG_UNDEFINED) {
         return null
     } else if (tag == JS_TAG_BOOL) {
-        return JS_ToBool(context, this) == 1
+        return JS_ToBool(context, this)
     } else if (tag == JS_TAG_INT) {
         memScoped {
             val out = alloc<int64_tVar>()
@@ -89,7 +89,7 @@ internal fun CValue<JSValue>.toKtValue(context: CPointer<JSContext>): Any? {
             return out.value
         }
     } else if (tag == JS_TAG_FLOAT64) {
-        if (JS_VALUE_IS_NAN(this) == 1) {
+        if (JS_VALUE_IS_NAN(this)) {
             return Double.NaN
         }
         memScoped {
@@ -116,9 +116,9 @@ internal fun CValue<JSValue>.toKtValue(context: CPointer<JSContext>): Any? {
             js_free(ctx = context, ptr = bufferPtr)
             buffer
         }
-    } else if (JS_IsArray(context, this) == 1) {
+    } else if (JS_IsArray(this)) {
         return jsArrayToKtList(context, this)
-    } else if (JS_IsError(context, this) == 1) {
+    } else if (JS_IsError(context, this)) {
         return jsErrorToKtError(context, this)
     } else if (tag == JS_TAG_OBJECT) {
         val globalThis = JS_GetGlobalObject(context)
@@ -157,11 +157,11 @@ internal fun jsErrorToKtError(context: CPointer<JSContext>, error: CValue<JSValu
     val message = JS_GetPropertyStr(context, error, "message")
         .use(context) { toKtString(context) }
     val stack = JS_GetPropertyStr(context, error, "stack")
-    if (JS_IsUndefined(stack) == 1) {
+    if (JS_IsUndefined(stack)) {
         JS_FreeValue(context, stack)
         return newKtError(name, message, null)
     }
-    if (JS_IsString(stack) == 1) {
+    if (JS_IsString(stack)) {
         return stack.use(context) {
             newKtError(name, "$message\n\b${toKtString(context)}", null)
         }
@@ -341,9 +341,9 @@ private fun jsObjectToKtJsObject(
 ): JsObject = memScoped {
     // Check circular refs
     val json = JS_JSONStringify(context, jsObject, JsUndefined(), JsUndefined())
-    if (JS_IsException(json) == 1) {
+    if (JS_IsException(json)) {
         val jsError = JS_GetException(context)
-        val error = if (JS_IsNull(jsError) != 1) jsErrorToKtError(context, jsError) else null
+        val error = if (JS_IsNull(jsError)) jsErrorToKtError(context, jsError) else null
         freeJsValues(context, jsError, json)
         if (error != null) {
             throw error
@@ -385,7 +385,7 @@ private fun jsObjectToKtJsObject(
         JS_FreeAtom(context, atom)
         val value = if (jsValue.isTheSameObject(jsObject)) {
             jsValue.use(context) { toKtString(context) }
-        } else if (JS_IsFunction(context, jsValue) == 1) {
+        } else if (JS_IsFunction(context, jsValue)) {
             freeJsValues(context, jsValue)
             "[Function]"
         } else {

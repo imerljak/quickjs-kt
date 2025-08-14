@@ -32,9 +32,9 @@ internal value class JsPromise(
 ) {
     fun result(context: CPointer<JSContext>): Any? {
         val ctxException = JS_GetException(context)
-        if (JS_IsNull(ctxException) != 1) {
+        if (JS_IsNull(ctxException)) {
             ctxException.use(context) {
-                if (JS_IsError(context, this) == 1) {
+                if (JS_IsError(context, this)) {
                     throw jsErrorToKtError(context, this)
                 } else {
                     throw QuickJsException(toKtString(context))
@@ -55,7 +55,7 @@ internal value class JsPromise(
                         }
                         JS_FreeValue(context, result)
                         stateText
-                    } else if (JS_IsException(result) != 1) {
+                    } else if (JS_IsException(result)) {
                         result.use(context) { toKtValue(context) }
                     } else {
                         // Is it safe to ignore the exception?

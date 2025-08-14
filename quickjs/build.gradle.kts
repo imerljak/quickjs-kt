@@ -20,9 +20,9 @@ kotlin {
     linuxArm64()
     macosX64()
     macosArm64()
-    iosX64()
-    iosArm64()
-    iosSimulatorArm64()
+//    iosX64()
+//    iosArm64()
+//    iosSimulatorArm64()
 
     applyDefaultHierarchyTemplate()
 
@@ -154,4 +154,35 @@ afterEvaluate {
     tasks.named("testReleaseUnitTest").configure {
         enabled = false
     }
+
+
+//    tasks.withType<Test> {
+//        forkEvery = 0
+//        maxParallelForks = 1
+//        useJUnitPlatform()
+//    }
+
+
+//    // Disable native tests
+//    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeLink>().configureEach {
+//        if (name.contains("Test")) {
+//            enabled = false
+//        }
+//    }
+//
+//    // ADD THIS: Fix signing issues for local development
+//    tasks.withType<Sign>().configureEach {
+//        enabled = false
+//        logger.warn("Signing disabled for local development")
+//    }
+//
+//    // Fix publication dependencies
+//    publishing {
+//        publications.withType<MavenPublication>().configureEach {
+//            // Remove signing requirements for local publishing
+//            if (name.contains("android", ignoreCase = true)) {
+//                artifacts.removeAll { it.classifier == "javadoc" }
+//            }
+//        }
+//    }
 }

@@ -51,7 +51,7 @@ internal fun <T : Any?> T.toJsValue(
     val value = this ?: return JsNull()
     return when (value) {
         Unit -> JsUndefined()
-        is Boolean -> JS_NewBool(context, if (value) 1 else 0)
+        is Boolean -> JS_NewBool(context, value)
         is Byte -> JS_NewInt32(context, value.toInt())
         is Short -> JS_NewInt32(context, value.toInt())
         is Int -> JS_NewInt32(context, value)
@@ -137,7 +137,7 @@ private fun ktByteBufferToJsByteArray(
         len = size,
         free_func = staticCFunction(::freeJsArrayBuffer),
         opaque = null,
-        is_shared = 0,
+        is_shared = false,
     )
     try {
         newJsObjectFromConstructor(context, arrayType, 1, allocArrayOf(arrayBuffer))
@@ -301,7 +301,7 @@ private fun newJsObjectFromConstructor(
 ): CValue<JSValue> {
     val globalThis = JS_GetGlobalObject(context)
     val constructor = JS_GetPropertyStr(context, globalThis, constructorName)
-    if (JS_IsNull(constructor) == 1 || JS_IsUndefined(constructor) == 1) {
+    if (JS_IsNull(constructor) || JS_IsUndefined(constructor)) {
         qjsError("JS constructor '$constructorName' not found.")
     }
     val instance = JS_CallConstructor(context, constructor, argc, argv)

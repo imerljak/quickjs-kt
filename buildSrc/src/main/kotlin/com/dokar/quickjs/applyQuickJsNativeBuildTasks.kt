@@ -137,9 +137,9 @@ fun Project.applyQuickJsNativeBuildTasks(cmakeFile: File) {
         "LinuxArm64",
         "MacosX64",
         "MacosArm64",
-        "IosX64",
-        "IosArm64",
-        "IosSimulatorArm64",
+//        "IosX64",
+//        "IosArm64",
+//        "IosSimulatorArm64",
     )
     for (suffix in cinteropTaskSuffixes) {
         tasks.named("cinteropQuickjs$suffix") {
@@ -174,17 +174,17 @@ private fun Project.findBuildPlatformsFromStartTaskNames(): List<Platform> {
                 return listOf(
                     Platform.macos_x64,
                     Platform.macos_aarch64,
-                    Platform.ios_x64,
-                    Platform.ios_aarch64,
-                    Platform.ios_simulator_aarch64,
+//                    Platform.ios_x64,
+//                    Platform.ios_aarch64,
+//                    Platform.ios_simulator_aarch64,
                 )
             }
 
             Platform.macos_aarch64 -> {
                 return listOf(
                     Platform.macos_aarch64,
-                    Platform.ios_aarch64,
-                    Platform.ios_simulator_aarch64,
+//                    Platform.ios_aarch64,
+//                    Platform.ios_simulator_aarch64,
                 )
             }
 

@@ -79,6 +79,30 @@ elseif (TARGET_PLATFORM STREQUAL "android")
     add_compile_definitions(CONFIG_ANDROID)
 endif ()
 
+# iOS-specific header path fixes
+if (TARGET_PLATFORM MATCHES "ios_")
+    # Get iOS SDK path
+    execute_process(
+        COMMAND xcrun --sdk iphoneos --show-sdk-path
+        OUTPUT_VARIABLE IOS_SDK_PATH
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_QUIET
+    )
+
+    if(IOS_SDK_PATH)
+        # Add system include directories for iOS standard headers
+        include_directories(SYSTEM "${IOS_SDK_PATH}/usr/include")
+
+        # Add to compiler flags as well (belt and suspenders approach)
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem${IOS_SDK_PATH}/usr/include")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem${IOS_SDK_PATH}/usr/include")
+
+        message(STATUS "Added iOS system headers: ${IOS_SDK_PATH}/usr/include")
+    else()
+        message(WARNING "Could not find iOS SDK path")
+    endif()
+endif()
+
 project(quickjs)
 
 set(CMAKE_C_STANDARD 99)

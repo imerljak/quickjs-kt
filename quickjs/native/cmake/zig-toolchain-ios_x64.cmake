@@ -5,23 +5,41 @@ endif()
 set(CMAKE_SYSTEM_NAME "Generic")
 set(CMAKE_SYSTEM_VERSION 1)
 set(CMAKE_SYSTEM_PROCESSOR "x86_64")
+set(IOS_TARGET "x86_64-ios")
 
-# Find iOS Simulator SDK path
+# Find iOS SDK path
 execute_process(
-    COMMAND xcrun --sdk iphonesimulator --show-sdk-path
+    COMMAND xcrun --sdk iphoneos --show-sdk-path
     OUTPUT_VARIABLE IOS_SDK_PATH
     OUTPUT_STRIP_TRAILING_WHITESPACE
     ERROR_QUIET
 )
 
+# Find zig executable
+find_program(ZIG_EXECUTABLE zig REQUIRED)
+
 if(IOS_SDK_PATH)
-    set(CMAKE_C_COMPILER "zig" cc -target x86_64-ios --sysroot=${IOS_SDK_PATH})
-    set(CMAKE_CXX_COMPILER "zig" c++ -target x86_64-ios --sysroot=${IOS_SDK_PATH})
-    message(STATUS "Using iOS Simulator SDK: ${IOS_SDK_PATH}")
+    # Fixed: Use list format for compiler arguments
+    set(CMAKE_C_COMPILER ${ZIG_EXECUTABLE})
+    set(CMAKE_CXX_COMPILER ${ZIG_EXECUTABLE})
+
+    # Set compiler arguments properly
+    set(CMAKE_C_COMPILER_ARG1 "cc")
+    set(CMAKE_CXX_COMPILER_ARG1 "c++")
+
+    # Set target and sysroot flags
+    set(CMAKE_C_FLAGS_INIT "-target ${IOS_TARGET} --sysroot=${IOS_SDK_PATH} -isystem${IOS_SDK_PATH}/usr/include")
+    set(CMAKE_CXX_FLAGS_INIT "-target ${IOS_TARGET} --sysroot=${IOS_SDK_PATH} -isystem${IOS_SDK_PATH}/usr/include")
+
+    message(STATUS "Using iOS SDK: ${IOS_SDK_PATH}")
 else()
-    set(CMAKE_C_COMPILER "zig" cc -target x86_64-ios)
-    set(CMAKE_CXX_COMPILER "zig" c++ -target x86_64-ios)
-    message(WARNING "iOS Simulator SDK not found, building without sysroot")
+    set(CMAKE_C_COMPILER ${ZIG_EXECUTABLE})
+    set(CMAKE_CXX_COMPILER ${ZIG_EXECUTABLE})
+    set(CMAKE_C_COMPILER_ARG1 "cc")
+    set(CMAKE_CXX_COMPILER_ARG1 "c++")
+    set(CMAKE_C_FLAGS_INIT "-target ${IOS_TARGET}")
+    set(CMAKE_CXX_FLAGS_INIT "-target ${IOS_TARGET}")
+    message(WARNING "iOS SDK not found, building without sysroot")
 endif()
 
 # Skip compiler checks for cross-compilation

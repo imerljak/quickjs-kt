@@ -77,7 +77,7 @@ internal fun CValue<JSValue>.isInstanceOf(
     constructorName: String,
 ): Boolean {
     val constructor = JS_GetPropertyStr(context, globalThis, constructorName)
-    if (JS_IsUndefined(constructor) == 1) {
+    if (JS_IsUndefined(constructor)) {
         JS_FreeValue(context, constructor)
         return false
     }
