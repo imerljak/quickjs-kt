@@ -372,7 +372,7 @@ jobject js_value_to_jobject(JNIEnv *env, JSContext *context, JSValue value) {
     } else if (JS_IsError(context, value)) {
         // Error
         return js_error_to_java_error(env, context, value);
-    } else if (JS_IsArray(context, value)) {
+    } else if (JS_IsArray(value)) {
         // Array
         return to_java_list(env, context, value);
     } else if (tag == JS_TAG_FUNCTION_BYTECODE || tag == JS_TAG_MODULE) {

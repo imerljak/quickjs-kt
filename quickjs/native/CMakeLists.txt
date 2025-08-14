@@ -54,14 +54,11 @@ elseif (TARGET_PLATFORM STREQUAL "macos_aarch64")
         configure_jni("darwin")
     endif ()
 elseif (TARGET_PLATFORM STREQUAL "ios_x64")
-    set(CMAKE_SYSTEM_NAME "iOS")
-    set(CMAKE_OSX_ARCHITECTURES "x86_64")
+    set(CMAKE_TOOLCHAIN_FILE "${CURRENT_DIR}/cmake/zig-toolchain-ios_x64.cmake")
 elseif (TARGET_PLATFORM STREQUAL "ios_aarch64")
-    set(CMAKE_SYSTEM_NAME "iOS")
-    set(CMAKE_OSX_ARCHITECTURES "arm64")
+    set(CMAKE_TOOLCHAIN_FILE "${CURRENT_DIR}/cmake/zig-toolchain-ios_aarch64.cmake")
 elseif (TARGET_PLATFORM STREQUAL "ios_aarch64_simulator")
-    set(CMAKE_SYSTEM_NAME "iOS")
-    set(CMAKE_OSX_ARCHITECTURES "arm64")
+    set(CMAKE_TOOLCHAIN_FILE "${CURRENT_DIR}/cmake/zig-toolchain-ios_aarch64_simulator.cmake")
 elseif (TARGET_PLATFORM STREQUAL "windows_x64")
     if (BUILD_WITH_JNI)
         configure_jni("win32")
@@ -87,9 +84,39 @@ project(quickjs)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
-# QuickJS version define, Gradle cmake cFlags doesn't work on Windows (maybe)
-file(READ "quickjs/VERSION" VERSION_CONTENT)
-string(STRIP "${VERSION_CONTENT}" CONFIG_VERSION)
+# QuickJS-NG version handling
+# QuickJS-NG doesn't have a VERSION file, so we'll use a fallback approach
+set(CONFIG_VERSION "quickjs-ng")
+
+# Try to read version from quickjs.h if available
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/quickjs/quickjs.h")
+    file(READ "${CMAKE_CURRENT_SOURCE_DIR}/quickjs/quickjs.h" QUICKJS_H_CONTENT)
+
+    # Try to extract version from quickjs.h
+    string(REGEX MATCH "#define QJS_VERSION \"([^\"]+)\"" VERSION_MATCH "${QUICKJS_H_CONTENT}")
+    if (VERSION_MATCH)
+        string(REGEX REPLACE "#define QJS_VERSION \"([^\"]+)\"" "\\1" CONFIG_VERSION "${VERSION_MATCH}")
+        message(STATUS "Found QuickJS-NG version: ${CONFIG_VERSION}")
+    else()
+        # Fallback: try to get version from git if in a git repository
+        find_package(Git QUIET)
+        if (GIT_FOUND AND EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/quickjs/.git")
+            execute_process(
+                COMMAND ${GIT_EXECUTABLE} -C "${CMAKE_CURRENT_SOURCE_DIR}/quickjs" describe --tags --always
+                OUTPUT_VARIABLE GIT_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_QUIET
+            )
+            if (GIT_VERSION)
+                set(CONFIG_VERSION "${GIT_VERSION}")
+                message(STATUS "Using git version for QuickJS-NG: ${CONFIG_VERSION}")
+            endif()
+        endif()
+    endif()
+else()
+    message(STATUS "quickjs.h not found, using fallback version: ${CONFIG_VERSION}")
+endif()
+
 add_compile_definitions(CONFIG_VERSION=\"${CONFIG_VERSION}\")
 
 # QuickJS BigNum
@@ -113,6 +140,12 @@ file(GLOB_RECURSE quickjs_sources
         "quickjs/quickjs.c"
         "common/quickjs_version.c"
 )
+
+# QuickJS-NG specific sources (check if they exist)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/quickjs/xsum.c")
+    list(APPEND quickjs_sources "quickjs/xsum.c")
+    message(STATUS "Including QuickJS-NG xsum.c")
+endif()
 list(APPEND all_sources ${quickjs_sources})
 
 if (BUILD_WITH_JNI)

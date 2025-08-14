@@ -54,7 +54,7 @@ internal fun Project.buildQuickJsNativeLibrary(
 
             Platform.ios_aarch64,
             Platform.ios_x64,
-            Platform.ios_simulator_aarch64 -> commonArgs + xcode
+            Platform.ios_simulator_aarch64 -> commonArgs + ninja
         }
     }
 

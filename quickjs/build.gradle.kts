@@ -98,6 +98,8 @@ android {
                     "-DANDROID_TOOLCHAIN=clang",
                     "-DTARGET_PLATFORM=android",
                     "-DLIBRARY_TYPE=shared",
+
+                    "-DCONFIG_BIGNUM=1"
                 )
                 cFlags("-fstrict-aliasing")
             }

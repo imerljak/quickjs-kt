@@ -6,7 +6,7 @@
 
 void promise_rejection_handler(JSContext *ctx, JSValue promise,
                                JSValue reason,
-                               int is_handled, void *opaque) {
+                               bool is_handled, void *opaque) {
     JNIEnv *env = get_jni_env();
     if (env == NULL) {
         return;
